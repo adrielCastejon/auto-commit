@@ -1,0 +1,38 @@
+name: Daily Auto Commit
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # Daily at 10:00 AM UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Important: allows pushing commits
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Update README
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > README.md << EOL
+          # Auto-Updated Repository
+
+          Last updated: $TIMESTAMP
+
+          This repository is automatically updated daily.
+
+          ## Update Log
+          - Updated on $TIMESTAMP
+          EOL
+          
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Auto-update: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" || echo "No changes to commit"
+          git push
